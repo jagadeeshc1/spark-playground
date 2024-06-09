@@ -7,6 +7,13 @@ import org.apache.spark.sql.Row
 import org.apache.spark.sql.functions.*
 
 
+/**
+ *
+ * this is the code for the blog: https://jagac.substack.com/p/apache-spark-reflection-type-use
+ *
+ *
+ */
+
 @NoArgEntity
 data class StudentScore(
     var studentId:Int,
@@ -34,12 +41,21 @@ data class StudentMandatorySumResult(
     var mandatorySubjectsScoreSum:Int
 )
 
-fun getStudentDs():Dataset<StudentScore>{
+
+@NoArgEntity
+data class StudentScore2(
+    var studentId:Int,
+    var sectionId:Int,
+    var name:String,
+    var scores:Map<String,Int>
+)
+
+fun getStudentScoreDs():Dataset<StudentScore>{
     val sparkSession = getSparkSession()
 
     val studentScore1 = StudentScore(1,100,"student1",50,60,70)
     val studentScore2 = StudentScore(2,200,"student2",30,20,80)
-    val studentScore3 = StudentScore(1,100,"student3",10,60,40)
+    val studentScore3 = StudentScore(3,100,"student3",10,60,40)
 
     val students = listOf(
         studentScore1,
@@ -71,7 +87,7 @@ fun simpleScoreSum(studentScoreDs:Dataset<StudentScore>){
 
     /**
      * or
-     * studentDs.withColumn("totalScore",expr("english + science + math"))
+     * studentScoreDs.withColumn("totalScore",expr("english + science + math"))
      *
      * both are same
      */
@@ -82,9 +98,9 @@ fun simpleScoreSum(studentScoreDs:Dataset<StudentScore>){
 
 
 fun getJoinedDs():Dataset<Row>{
-    val studentDs = getStudentDs()
+    val studentScoreDs = getStudentScoreDs()
     val sectionDs = getSectionDs()
-    val joinedDs = studentDs.join(sectionDs,"sectionId")
+    val joinedDs = studentScoreDs.join(sectionDs,"sectionId")
     joinedDs.show(false)
     return joinedDs
 
@@ -159,12 +175,12 @@ fun mandatoryScoreSumUsingGeneratedCaseWhenCollect(joinedDs:Dataset<Row>){
 
 fun mandatorySumUsingMapFunction(){
 
-    val studentDs = getStudentDs()
+    val studentScoreDs = getStudentScoreDs()
     val sectionDs = getSectionDs()
 
     val sectionIdToMandatoryScoresMap = sectionDs.collectAsList().associate { it.sectionId to it.mandatorySubjects }
 
-    val resultDs = studentDs.map(
+    val resultDs = studentScoreDs.map(
         MapFunction <StudentScore,StudentMandatorySumResult>{
             val mandatoryScores = sectionIdToMandatoryScoresMap[it.sectionId]!!
             var mandatoryScoreSum = 0
@@ -191,13 +207,67 @@ fun mandatorySumUsingMapFunction(){
 
 }
 
+fun getStudentScore2Ds():Dataset<StudentScore2>{
+    val sparkSession = getSparkSession()
+
+    val studentScore1 = StudentScore2(1,100,"student1", mapOf(
+        "math" to 50,
+        "science" to 60,
+        "english" to 70
+    ))
+    val studentScore2 = StudentScore2(2,200,"student2", mapOf(
+        "math" to 30,
+        "science" to 20,
+        "english" to 80
+    ))
+    val studentScore3 = StudentScore2(3,100,"student3",mapOf(
+        "math" to 10,
+        "science" to 60,
+        "english" to 40
+    ))
+
+    val students = listOf(
+        studentScore1,
+        studentScore2,
+        studentScore3
+    )
+
+    return sparkSession.createDataset(students,Encoders.bean(StudentScore2::class.java))
+}
+
+fun mandatorySumUsingMapType(){
+    val studentScore2Ds = getStudentScore2Ds()
+
+    studentScore2Ds.show(false)
+
+    val sectionDs = getSectionDs()
+
+    val joinedDs = studentScore2Ds.join(sectionDs,"sectionId")
+
+    val result = joinedDs.withColumn("mandatoryScoreValues", expr(
+        """
+            transform(
+                mandatorySubjects,
+                x->scores[x]
+            )
+        """.trimIndent()
+    )).withColumn(
+        "mandatoryScoreSum",
+        expr("""
+            aggregate(mandatoryScoreValues,0,(acc,x)->acc+x)
+        """.trimIndent())
+    )
+
+    result.show(false)
+}
+
 
 fun main(){
 
-    val studentDs = getStudentDs()
+    val studentScoreDs = getStudentScoreDs()
     val sectionDs = getSectionDs()
 
-    simpleScoreSum(studentDs)
+    simpleScoreSum(studentScoreDs)
 
     val joinedDs = getJoinedDs()
 
@@ -205,4 +275,5 @@ fun main(){
 
     mandatoryScoreSumUsingGeneratedCaseWhenCollect(joinedDs)
     mandatorySumUsingMapFunction()
+    mandatorySumUsingMapType()
 }
