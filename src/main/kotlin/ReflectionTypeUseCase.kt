@@ -1,5 +1,6 @@
 package org.example
 
+import org.apache.spark.api.java.function.MapFunction
 import org.apache.spark.sql.Dataset
 import org.apache.spark.sql.Encoders
 import org.apache.spark.sql.Row
@@ -7,41 +8,52 @@ import org.apache.spark.sql.functions.*
 
 
 @NoArgEntity
-data class Student(
+data class StudentScore(
     var studentId:Int,
     var sectionId:Int,
     var name:String,
-    var mathScore:Int,
-    var scienceScore:Int,
-    var englishScore:Int,
+    var math:Int,
+    var science:Int,
+    var english:Int,
 )
 
 @NoArgEntity
 data class Section(
     var sectionId:Int,
-    var mandatoryScores:List<String>
+    var mandatorySubjects:List<String>
 )
 
-fun getStudentDs():Dataset<Student>{
+@NoArgEntity
+data class StudentMandatorySumResult(
+    var studentId:Int,
+    var sectionId:Int,
+    var name:String,
+    var math:Int,
+    var science:Int,
+    var english:Int,
+    var mandatorySubjectsScoreSum:Int
+)
+
+fun getStudentDs():Dataset<StudentScore>{
     val sparkSession = getSparkSession()
 
-    val student1 = Student(1,100,"student1",50,60,70)
-    val student2 = Student(2,200,"student2",30,20,80)
-    val student3 = Student(1,100,"student3",10,60,40)
+    val studentScore1 = StudentScore(1,100,"student1",50,60,70)
+    val studentScore2 = StudentScore(2,200,"student2",30,20,80)
+    val studentScore3 = StudentScore(1,100,"student3",10,60,40)
 
     val students = listOf(
-        student1,
-        student2,
-        student3
+        studentScore1,
+        studentScore2,
+        studentScore3
     )
 
-    return sparkSession.createDataset(students,Encoders.bean(Student::class.java))
+    return sparkSession.createDataset(students,Encoders.bean(StudentScore::class.java))
 }
 
 fun getSectionDs():Dataset<Section>{
     val sparkSession = getSparkSession()
-    val section1 = Section(100, listOf("mathScore","englishScore"))
-    val section2 = Section(200, listOf("englishScore","scienceScore"))
+    val section1 = Section(100, listOf("math","english"))
+    val section2 = Section(200, listOf("english","science"))
 
     val sections = listOf(
         section1,
@@ -52,14 +64,14 @@ fun getSectionDs():Dataset<Section>{
 
 }
 
-fun simpleScoreSum(studentDs:Dataset<Student>){
-    val resultDf = studentDs
+fun simpleScoreSum(studentScoreDs:Dataset<StudentScore>){
+    val resultDf = studentScoreDs
         .withColumn("totalScore",
-            col("englishScore").plus(col("scienceScore")).plus(col("mathScore")))
+            col("english").plus(col("science")).plus(col("math")))
 
     /**
      * or
-     * studentDs.withColumn("totalScore",expr("englishScore + scienceScore + mathScore"))
+     * studentDs.withColumn("totalScore",expr("english + science + math"))
      *
      * both are same
      */
@@ -93,7 +105,7 @@ fun mandatoryScoreSumUsingGeneratedCaseWhen(joinedDs:Dataset<Row>){
         "mandatoryScoreValues",
         expr("""
             transform(
-                mandatoryScores,
+                mandatorySubjects,
                 x -> $caseExpr
             )
         """.trimIndent())
@@ -107,16 +119,90 @@ fun mandatoryScoreSumUsingGeneratedCaseWhen(joinedDs:Dataset<Row>){
     result.show(false)
 }
 
+fun mandatoryScoreSumUsingGeneratedCaseWhenCollect(joinedDs:Dataset<Row>){
+    val sectionDs = getSectionDs()
+    //assuming that sectionDs is small dataset
+    val cols = sectionDs
+        .withColumn("mandatorySubject", explode(col("mandatorySubjects")))
+        .select("mandatorySubject")
+        .distinct()
+        .collectAsList()
+        .map { it.getString(0) }
+        .toSet()
+
+    var caseExpr = "CASE \n"
+    for(colName in cols){
+        caseExpr += " WHEN x= '$colName' then cast($colName as int) \n"
+    }
+    caseExpr += " ELSE null \n"
+    caseExpr += "END \n"
+
+    println(caseExpr)
+
+    val result = joinedDs.withColumn(
+        "mandatoryScoreValues",
+        expr("""
+            transform(
+                mandatorySubjects,
+                x -> $caseExpr
+            )
+        """.trimIndent())
+    ).withColumn(
+        "mandatoryScoreSum",
+        expr("""
+            aggregate(mandatoryScoreValues,0,(acc,x)->acc+x)
+        """.trimIndent())
+    )
+
+    result.show(false)
+}
+
+fun mandatorySumUsingMapFunction(){
+
+    val studentDs = getStudentDs()
+    val sectionDs = getSectionDs()
+
+    val sectionIdToMandatoryScoresMap = sectionDs.collectAsList().associate { it.sectionId to it.mandatorySubjects }
+
+    val resultDs = studentDs.map(
+        MapFunction <StudentScore,StudentMandatorySumResult>{
+            val mandatoryScores = sectionIdToMandatoryScoresMap[it.sectionId]!!
+            var mandatoryScoreSum = 0
+            for (mandatoryScore in mandatoryScores){
+                val field = it.javaClass.getDeclaredField(mandatoryScore)
+                field.trySetAccessible()
+                val fieldValue = field.getInt(it)
+                mandatoryScoreSum += fieldValue
+            }
+            StudentMandatorySumResult(
+                it.studentId,
+                it.sectionId,
+                it.name,
+                it.math,
+                it.science,
+                it.english,
+                mandatoryScoreSum
+            )
+        },
+        Encoders.bean(StudentMandatorySumResult::class.java)
+    )
+
+    resultDs.show(false)
+
+}
+
 
 fun main(){
 
     val studentDs = getStudentDs()
     val sectionDs = getSectionDs()
 
-//    simpleScoreSum(studentDs)
+    simpleScoreSum(studentDs)
 
     val joinedDs = getJoinedDs()
 
     mandatoryScoreSumUsingGeneratedCaseWhen(joinedDs)
 
+    mandatoryScoreSumUsingGeneratedCaseWhenCollect(joinedDs)
+    mandatorySumUsingMapFunction()
 }
