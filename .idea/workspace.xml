@@ -5,24 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e8d9ca1e-270c-4d33-92b8-573e36b6dd3b" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/kotlinc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/gradle.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/gradlew" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/gradlew.bat" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/settings.gradle.kts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/1DatasetCreation.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/2EncoderExample.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/Main.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/NoArgEntity.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/sparkExtensions.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/2CustomDatasetCreation.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/ReflectionTypeUseCase.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/domain/Employee.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/1DatasetCreation.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/1DatasetCreation.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/2EncoderExample.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/2EncoderExample.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,11 +22,28 @@
       <ProjectState />
     </projectState>
   </component>
+  <component name="ExternalProjectsManager">
+    <system id="GRADLE">
+      <state>
+        <projects_view>
+          <tree_state>
+            <expand>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="spark-playground" type="f1a62948:ProjectNode" />
+              </path>
+            </expand>
+            <select />
+          </tree_state>
+        </projects_view>
+      </state>
+    </system>
+  </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Kotlin Class" />
         <option value="Kotlin File" />
+        <option value="Kotlin Class" />
       </list>
     </option>
   </component>
@@ -58,7 +63,9 @@
   "keyToString": {
     "Gradle.Build spark-playground.executor": "Run",
     "Kotlin.EncoderPlayKt.executor": "Run",
+    "Kotlin.ReflectionTypeUseCaseKt.executor": "Run",
     "Kotlin._1DatasetCreationKt.executor": "Run",
+    "Kotlin._2CustomDatasetCreationKt.executor": "Run",
     "Kotlin._2EncoderExampleKt.executor": "Run",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
@@ -66,12 +73,30 @@
     "git-widget-placeholder": "main",
     "kotlin-language-version-configured": "true",
     "onboarding.tips.debug.path": "/Users/jaga/repos/spark-playground/src/main/kotlin/Main.kt",
-    "settings.editor.selected.configurable": "preferences.pluginManager"
+    "settings.editor.selected.configurable": "preferences.keymap"
   }
 }]]></component>
-  <component name="RunManager" selected="Kotlin._2EncoderExampleKt">
+  <component name="RunManager" selected="Kotlin.ReflectionTypeUseCaseKt">
+    <configuration name="ReflectionTypeUseCaseKt" type="JetRunConfigurationType" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="org.example.ReflectionTypeUseCaseKt" />
+      <module name="spark-playground.main" />
+      <shortenClasspath name="NONE" />
+      <option name="VM_PARAMETERS" value="--add-exports java.base/sun.nio.ch=ALL-UNNAMED" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="_1DatasetCreationKt" type="JetRunConfigurationType" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="org.example._1DatasetCreationKt" />
+      <module name="spark-playground.main" />
+      <shortenClasspath name="NONE" />
+      <option name="VM_PARAMETERS" value="--add-exports java.base/sun.nio.ch=ALL-UNNAMED" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="_2CustomDatasetCreationKt" type="JetRunConfigurationType" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="org.example._2CustomDatasetCreationKt" />
       <module name="spark-playground.main" />
       <shortenClasspath name="NONE" />
       <option name="VM_PARAMETERS" value="--add-exports java.base/sun.nio.ch=ALL-UNNAMED" />
@@ -89,13 +114,17 @@
       </method>
     </configuration>
     <list>
+      <item itemvalue="Kotlin.ReflectionTypeUseCaseKt" />
+      <item itemvalue="Kotlin._2CustomDatasetCreationKt" />
       <item itemvalue="Kotlin._2EncoderExampleKt" />
       <item itemvalue="Kotlin._1DatasetCreationKt" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Kotlin._2EncoderExampleKt" />
+        <item itemvalue="Kotlin.ReflectionTypeUseCaseKt" />
+        <item itemvalue="Kotlin._2CustomDatasetCreationKt" />
         <item itemvalue="Kotlin._1DatasetCreationKt" />
+        <item itemvalue="Kotlin._2EncoderExampleKt" />
       </list>
     </recent_temporary>
   </component>

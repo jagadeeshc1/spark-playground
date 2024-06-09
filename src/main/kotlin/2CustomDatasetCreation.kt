@@ -2,12 +2,9 @@ package org.example
 
 import org.apache.spark.sql.Dataset
 import org.apache.spark.sql.Encoders
-import org.apache.spark.sql.Row
-import org.apache.spark.sql.functions.*
+import org.apache.spark.sql.functions
 import org.example.domain.Department
 import org.example.domain.Employee
-
-
 
 fun main() {
     val sparkSession = getSparkSession()
@@ -21,6 +18,7 @@ fun main() {
 
     val employeeEncoder = Encoders.bean(Employee::class.java)
 
+    //creating empDs which has department column as struct
     val empDs: Dataset<Employee> = sparkSession.createDataset(listOf(
         employee1,
         employee2,
@@ -30,22 +28,22 @@ fun main() {
     empDs.printSchema()
 
     // get employees in sales department
-    val salesEmployeeDf = empDs.filter(col("department.deptName").equalTo("sales"))
+    val salesEmployeeDf = empDs.filter(functions.col("department.deptName").equalTo("sales"))
 
-//    salesEmployeeDf.show(false)
+    salesEmployeeDf.show(false)
 
-    // get all the employees in department having more than one employee
-
-    val empCountDf = empDs
-        .groupBy(col("department.deptId").alias("deptId"))
-        .agg(count("*").alias("employeeCount"))
-        .filter("employeeCount > 1")
-
-    val multipleEmployeesDf = empDs
-        .join(empCountDf, expr("department.deptId = deptId"),"leftSemi")
-        .encode(Employee::class.java)
-
-    multipleEmployeesDf.show()
+//    // get all the employees in department having more than one employee
+//
+//    val empCountDf = empDs
+//        .groupBy(functions.col("department.deptId").alias("deptId"))
+//        .agg(functions.count("*").alias("employeeCount"))
+//        .filter("employeeCount > 1")
+//
+//    val multipleEmployeesDf = empDs
+//        .join(empCountDf, functions.expr("department.deptId = deptId"),"leftSemi")
+//        .encode(Employee::class.java)
+//
+//    multipleEmployeesDf.show()
 
 
     Thread.sleep(100000000)

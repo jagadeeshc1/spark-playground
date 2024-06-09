@@ -21,9 +21,9 @@ fun main() {
     multipliedDs.printSchema()
 
     // see the plan
-    intDs.explain()
+    intDs.explain(true)
 
-    multipliedDs.explain()
+    multipliedDs.explain(true)
 
 
     // show the table
